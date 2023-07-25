@@ -14,4 +14,3 @@ public class AppUser : IAppUser
         Email = email;
     }
 }
-
