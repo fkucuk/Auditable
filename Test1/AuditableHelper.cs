@@ -7,40 +7,39 @@ namespace Test1;
 public class AuditableHelper : IAuditableHelper
 {
 
-    private readonly IServiceScope _serviceScope;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
     public AuditableHelper(IServiceScopeFactory serviceScopeFactory)
     {
-        _serviceScope = serviceScopeFactory.CreateScope();
+        _serviceScopeFactory = serviceScopeFactory; 
 
     }
 
     public void SetCreatedProperties(IAuditable auditable)
     {
-        var appUser = _serviceScope.ServiceProvider.GetRequiredService<IAppUser>();
         auditable.CreatedDateUtc = DateTime.UtcNow;
-        auditable.CreatedUser = GetUserIdentifierForAudit(appUser);
+        auditable.CreatedUser = GetUserIdentifierForAudit();
     }
 
 
     public void SetDeletedProperties(IAuditable auditable)
     {
-        var appUser = _serviceScope.ServiceProvider.GetRequiredService<IAppUser>();
         auditable.DeletedDateUtc = DateTime.UtcNow;
-        auditable.DeletedUser = GetUserIdentifierForAudit(appUser);
+        auditable.DeletedUser = GetUserIdentifierForAudit();
         auditable.IsDeleted = true;
     }
 
 
     public void SetUpdatedProperties(IAuditable auditable)
     {
-        var appUser = _serviceScope.ServiceProvider.GetRequiredService<IAppUser>();
         auditable.UpdatedDateUtc = DateTime.UtcNow;
-        auditable.UpdatedUser = GetUserIdentifierForAudit(appUser);
+        auditable.UpdatedUser = GetUserIdentifierForAudit();
     }
 
-    private string GetUserIdentifierForAudit(IAppUser currentUser)
+    private string GetUserIdentifierForAudit()
     {
-        return  currentUser.Email ?? currentUser.UserId.ToString();
+        using var serviceScope = _serviceScopeFactory.CreateScope();
+        var appUser = serviceScope.ServiceProvider.GetRequiredService<IAppUser>();
+        return appUser.Email ?? appUser.UserId.ToString();
     }
 }
